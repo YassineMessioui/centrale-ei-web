@@ -1,40 +1,37 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import precision_score, recall_score
 
-# Assuming `metrics` is a pandas DataFrame with columns: 'Model', 'Precision', 'Recall', 'F1 score'
-models = metrics['Model']
-metrics_list = ['Precision', 'Recall', 'F1 score']
+def plot_precision_recall_across_datasets(model, dataset_dict):
+    """
+    model: Trained classifier (e.g., XGBoost)
+    dataset_dict: dict[str, tuple(X_test, y_test)]
+    """
+    dataset_names = []
+    precisions = []
+    recalls = []
 
-fig, axes = plt.subplots(nrows=3, figsize=(8, 8), sharex=True)
+    for name, (X, y) in dataset_dict.items():
+        y_pred = model.predict(X)
+        precision = precision_score(y, y_pred)
+        recall = recall_score(y, y_pred)
 
-for i, metric in enumerate(metrics_list):
-    values = metrics[metric]
-    ax = axes[i]
-    
-    bars = ax.bar(models, values, color='#006B3C')  # Cadmium Green approximation
-    
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            height + 0.01,
-            f'{height:.2f}',
-            ha='center',
-            va='bottom',
-            fontsize=10
-        )
+        dataset_names.append(name)
+        precisions.append(precision)
+        recalls.append(recall)
 
-    ax.set_ylabel(metric)
-    ax.set_ylim(0, 1.1)
+    # Plot
+    x = range(len(dataset_names))
+    width = 0.35
 
-# Bottom plot: add title, xlabel, and xticks
-axes[-1].set_title(f'Metric Comparison for {country}')
-axes[-1].set_xlabel('Model')
-axes[-1].set_xticks(range(len(models)))
-axes[-1].set_xticklabels(models, rotation=45)
+    plt.figure(figsize=(10, 6))
+    plt.bar([i - width/2 for i in x], recalls, width=width, label='Recall')
+    plt.bar([i + width/2 for i in x], precisions, width=width, label='Precision')
 
-# Remove x-axis tick labels for top plots
-for ax in axes[:-1]:
-    ax.tick_params(labelbottom=False)
-
-plt.tight_layout()
-plt.show()
+    plt.xticks(ticks=x, labels=dataset_names)
+    plt.ylim(0, 1)
+    plt.ylabel("Score")
+    plt.title("Precision and Recall per Dataset")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
