@@ -1,118 +1,40 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from sklearn.metrics import (
-    precision_score, recall_score, f1_score,
-    roc_curve, auc, precision_recall_curve,
-    confusion_matrix
-)
-from sklearn.ensemble import RandomForestClassifier, IsolationForest
-from sklearn.cluster import DBSCAN
-from xgboost import XGBClassifier
 
-def remap_labels_dbscan(labels):
-    return np.where(labels == -1, 1, 0)
+# Assuming `metrics` is a pandas DataFrame with columns: 'Model', 'Precision', 'Recall', 'F1 score'
+models = metrics['Model']
+metrics_list = ['Precision', 'Recall', 'F1 score']
 
-def remap_labels_isolation(labels):
-    return np.where(labels == -1, 1, 0)
+fig, axes = plt.subplots(nrows=3, figsize=(8, 8), sharex=True)
 
-def evaluate_all_models(models, model_names, X_test, y_test):
-    metrics = {
-        'Model': [],
-        'Precision': [],
-        'Recall': [],
-        'F1 Score': [],
-        'ROC AUC': []
-    }
+for i, metric in enumerate(metrics_list):
+    values = metrics[metric]
+    ax = axes[i]
+    
+    bars = ax.bar(models, values, color='#006B3C')  # Cadmium Green approximation
+    
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.01,
+            f'{height:.2f}',
+            ha='center',
+            va='bottom',
+            fontsize=10
+        )
 
-    plt.figure(figsize=(14, 6))
+    ax.set_ylabel(metric)
+    ax.set_ylim(0, 1.1)
 
-    # ROC CURVES
-    plt.subplot(1, 2, 1)
-    for model, name in zip(models, model_names):
-        if hasattr(model, "predict_proba"):
-            y_probs = model.predict_proba(X_test)[:, 1]
-        elif isinstance(model, IsolationForest):
-            scores = model.decision_function(X_test)
-            y_probs = -scores  # Higher = more anomalous
-            y_probs = (y_probs - y_probs.min()) / (y_probs.max() - y_probs.min())
-        elif isinstance(model, DBSCAN):
-            labels = model.fit_predict(X_test)
-            y_probs = remap_labels_dbscan(labels)
-        else:
-            continue
+# Bottom plot: add title, xlabel, and xticks
+axes[-1].set_title(f'Metric Comparison for {country}')
+axes[-1].set_xlabel('Model')
+axes[-1].set_xticks(range(len(models)))
+axes[-1].set_xticklabels(models, rotation=45)
 
-        fpr, tpr, _ = roc_curve(y_test, y_probs)
-        roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
+# Remove x-axis tick labels for top plots
+for ax in axes[:-1]:
+    ax.tick_params(labelbottom=False)
 
-        metrics['Model'].append(name)
-        metrics['ROC AUC'].append(roc_auc)
-
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.title('ROC Curves')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.legend()
-
-    # PRECISION-RECALL CURVE
-    plt.subplot(1, 2, 2)
-    for model, name in zip(models, model_names):
-        if hasattr(model, "predict_proba"):
-            y_probs = model.predict_proba(X_test)[:, 1]
-        elif isinstance(model, IsolationForest):
-            scores = model.decision_function(X_test)
-            y_probs = -scores
-            y_probs = (y_probs - y_probs.min()) / (y_probs.max() - y_probs.min())
-        elif isinstance(model, DBSCAN):
-            labels = model.fit_predict(X_test)
-            y_probs = remap_labels_dbscan(labels)
-        else:
-            continue
-
-        precision, recall, _ = precision_recall_curve(y_test, y_probs)
-        pr_auc = auc(recall, precision)
-        plt.plot(recall, precision, label=f"{name} (AUC = {pr_auc:.2f})")
-
-    plt.title('Precision-Recall Curves')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-    # METRICS + CONFUSION MATRICES
-    for model, name in zip(models, model_names):
-        if isinstance(model, DBSCAN):
-            labels = model.fit_predict(X_test)
-            y_pred = remap_labels_dbscan(labels)
-        elif isinstance(model, IsolationForest):
-            y_pred = remap_labels_isolation(model.predict(X_test))
-        else:
-            y_pred = model.predict(X_test)
-
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-
-        metrics['Precision'].append(precision)
-        metrics['Recall'].append(recall)
-        metrics['F1 Score'].append(f1)
-
-        cm = confusion_matrix(y_test, y_pred)
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.title(f'Confusion Matrix: {name}')
-        plt.xlabel('Predicted')
-        plt.ylabel('Actual')
-        plt.show()
-
-    # BAR CHARTS
-    for metric in ['Precision', 'Recall', 'F1 Score', 'ROC AUC']:
-        plt.figure(figsize=(6, 4))
-        sns.barplot(x=metrics['Model'], y=metrics[metric])
-        plt.title(f'{metric} Comparison')
-        plt.ylim(0, 1)
-        plt.ylabel(metric)
-        plt.xlabel('Model')
-        plt.show()
+plt.tight_layout()
+plt.show()
