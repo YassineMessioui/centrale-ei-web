@@ -1,30 +1,5 @@
-import matplotlib.pyplot as plt
+To compare model performance, we identified the best hyperparameters for two training setups: one model trained on data from all countries and another trained exclusively on French data. We evaluated both models on four different test sets: a global test set covering all countries, and three country-specific sets (France, Italy, Germany).
 
-# List of metrics to plot
-for metric in ['Precision', 'Recall', 'F1 score']:
-    plt.figure(figsize=(6, 4))
+The comparison involved four machine learning models — XGBoost, Random Forest, Isolation Forest, and LightGBM — and focused on F1 score, recall, and precision. Our objective was not only to maximize these metrics but also to identify the model that generalizes best across all countries.
 
-    models = metrics['Model'].values
-    values = metrics[metric].values
-
-    bars = plt.bar(models, values, color='skyblue')
-
-    # Annotate bars
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(
-            bar.get_x() + bar.get_width() / 2,
-            height + 0.01,
-            f'{height:.2f}',
-            ha='center',
-            va='bottom',
-            fontsize=10
-        )
-
-    plt.title(f'{metric} Comparison for {country}')
-    plt.ylim(0, 1.1)
-    plt.ylabel(metric)
-    plt.xlabel('Model')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+This evaluation was conducted in the Dataiku flow (Zone: Model Comparison, recipe: Model_comparison), where we ran each model using the best hyperparameters obtained via Optuna. The results showed that the XGBoost model trained on all countries achieved the best overall performance, with an F1 score of 48%, a recall of 37%, and a precision of 71%.
