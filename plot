@@ -1,9 +1,17 @@
-An interactive dashboard was developed using Power BI to visualize and analyze contract data. The core dataset includes various business indicators, with columns identifying the country and a target label distinguishing fraudulent from non-fraudulent contracts. This dataset was built in Dataiku, with the full data pipeline available in the BI Zone. A Python recipe processes the input dataset indicators_all_countries to generate the INDICATORS_BI output by standardizing unclear column names for improved readability.
+Using the interactive dashboard, several key indicators emerged as strong signals of potential fraudulent behavior across countries:
 
-Given the dataset's size—approximately 3 million contracts—a random sample of 100,000 non-fraudulent contracts is extracted to reduce noise and mitigate the impact of outliers. This sampling step preserves the overall distribution and ensures better performance and interpretability in Power BI.
+Phone Number Changes (last 6 months):
+This feature was particularly significant in France and Germany. Fraudulent clients were twice as likely to have changed their phone number more than once compared to non-fraudulent clients.
 
-Once indicators_all_indicators is generated, it is imported into Power BI, where several transformations are applied. Negative financial values are replaced with nulls to avoid skewing statistical measures such as averages and medians. Columns originally labeled in French, German, or Italian—such as payment methods—are translated into English. Additionally, unnecessary columns are removed to streamline the dataset.
+Payment Method:
+In Germany, payment method proved to be a highly discriminative factor: 77% of fraudsters used bank transfers, compared to just 6% of non-fraudsters. A similar, though less pronounced, trend was observed in France, with 16% of fraudsters using bank transfers versus 4% of non-fraudulent clients.
 
-One key area for improvement involves translating large categorical columns such as client activity and leased material. Due to the volume (thousands of unique values) and Dataiku's offline Python environment—limiting access to translation APIs—automated translation was not feasible. Manual translation was also impractical given the time constraints and scale of the data.
+Company Age:
+Across all countries, fraudulent companies tended to be younger. Most were less than 5 to 7 years old, while non-fraudulent companies showed a more even age distribution.
 
-To update the dashboard, the indicators_all_countries recipe must be re-executed in Dataiku. The output dataset INDICATORS_BI_SAMPLED should then be reloaded into Power BI by updating the data source via Power Query.
+Client Activity:
+Wholesale trade was the most common activity among fraudulent clients in all three countries. However, further insight is currently limited due to language barriers in column values, which require translation.
+
+Material Leased:
+Certain types of leased material also stood out as indicators. In France, for example, the use of multifunctional vehicles increased significantly—from 4% among non-fraudsters to 22% among fraudsters. Similar shifts in distribution were observed across other materials and countries.
+
