@@ -1,37 +1,30 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import precision_score, recall_score
 
-def plot_precision_recall_across_datasets(model, dataset_dict):
-    """
-    model: Trained classifier (e.g., XGBoost)
-    dataset_dict: dict[str, tuple(X_test, y_test)]
-    """
-    dataset_names = []
-    precisions = []
-    recalls = []
+# List of metrics to plot
+for metric in ['Precision', 'Recall', 'F1 score']:
+    plt.figure(figsize=(6, 4))
 
-    for name, (X, y) in dataset_dict.items():
-        y_pred = model.predict(X)
-        precision = precision_score(y, y_pred)
-        recall = recall_score(y, y_pred)
+    models = metrics['Model'].values
+    values = metrics[metric].values
 
-        dataset_names.append(name)
-        precisions.append(precision)
-        recalls.append(recall)
+    bars = plt.bar(models, values, color='skyblue')
 
-    # Plot
-    x = range(len(dataset_names))
-    width = 0.35
+    # Annotate bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.01,
+            f'{height:.2f}',
+            ha='center',
+            va='bottom',
+            fontsize=10
+        )
 
-    plt.figure(figsize=(10, 6))
-    plt.bar([i - width/2 for i in x], recalls, width=width, label='Recall')
-    plt.bar([i + width/2 for i in x], precisions, width=width, label='Precision')
-
-    plt.xticks(ticks=x, labels=dataset_names)
-    plt.ylim(0, 1)
-    plt.ylabel("Score")
-    plt.title("Precision and Recall per Dataset")
-    plt.legend()
+    plt.title(f'{metric} Comparison for {country}')
+    plt.ylim(0, 1.1)
+    plt.ylabel(metric)
+    plt.xlabel('Model')
+    plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
